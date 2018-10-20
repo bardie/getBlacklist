@@ -282,6 +282,13 @@ echo "domain,description" > $PATH_LIST/domain_malware_blacklist.csv
 echo "Processing Malware Domain Blacklist ($TIMESTAMP)."
 $BIN_AWK -v var="$TIMESTAMP" '/[0-9a-zA-Z\.\-]+\.[a-z]{2,10}/ { print $1 ",Malware Domain Blacklist (Category: " $2 ") (Source: " $3 ") (" var ")" }' $PATH_DATE/domain_malware_blacklist.txt >> $PATH_LIST/domain_malware_blacklist.csv
 
+echo "Get hpHosts Blacklist."
+# TIMESTAMP=$( funGetTimestamp )
+$BIN_WGET -q https://hosts-file.net/exp.txt -O $PATH_DATE/hphosts-file.txt --no-check-certificate
+echo "domain" > $PATH_LIST/hphosts-file.csv
+echo "Processing hosts-file Domain Blacklist ($TIMESTAMP)."
+$BIN_AWK -v var="$TIMESTAMP" '/[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/ { print $2 ",hpHosts database (" var ")" }' $PATH_DATE/hphosts-file.txt >> $PATH_LIST/hphosts-file.csv
+
 # Collect all feeds to one csv per type of feeds
 # TIMESTAMP=$( funGetTimestamp )
 echo "Collecting tables to blacklist folder ($TIMESTAMP)."
@@ -305,6 +312,11 @@ while read TABLE
 do
   $BIN_GREP -v "url,description" $TABLE >> $PATH_BLACKLISTS/$FILE_URL_BLACKLIST
 done
-
+echo "domain" > $PATH_BLACKLISTS/$FILE_DOMAIN_BLACKLIST
+$BIN_FIND $PATH_LIST -type f -name "domain_*" | \
+while read TABLE
+do
+  $BIN_GREP -v "domain" $TABLE >> $PATH_BLACKLISTS/$FILE_DOMAIN_BLACKLIST
+done
 # TIMESTAMP=$( funGetTimestamp )
 echo "End ($TIMESTAMP)."
